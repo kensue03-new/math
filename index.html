@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>카카오 프렌즈와 함께하는 5학년 분수의 곱셈</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti for celebrate effects -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts: Jua & Noto Sans KR -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&family=Noto+Sans+KR:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        kakao: {
+                            yellow: '#FEE500',
+                            brown: '#3C1E1E',
+                            bg: '#FFFBE6',
+                            card: '#FFFFFF',
+                            peach: '#FFB3C1',
+                            blue: '#4A90E2',
+                            green: '#2ECC71',
+                            orange: '#FF8A00'
+                        }
+                    },
+                    fontFamily: {
+                        jua: ['Jua', 'sans-serif'],
+                        sans: ['Noto Sans KR', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #FFF9E6;
+            background-image: radial-gradient(#FEE500 1.5px, transparent 1.5px);
+            background-size: 24px 24px;
+        }
+        .font-jua {
+            font-family: 'Jua', sans-serif;
+        }
+        /* Custom fraction styling */
+        .fraction {
+            display: inline-flex;
+            flex-direction: column;
+            vertical-align: middle;
+            text-align: center;
+            padding: 0 4px;
+            white-space: nowrap;
+        }
+        .fraction .numerator {
+            border-bottom: 3px solid currentColor;
+            padding-bottom: 2px;
+            font-weight: 700;
+        }
+        .fraction .denominator {
+            padding-top: 2px;
+            font-weight: 700;
+        }
+        .mixed-fraction {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        /* Prevent awkward line breaks in Korean text */
+        .break-keep {
+            word-break: keep-all;
+            overflow-wrap: break-word;
+        }
+        /* Glassmorphism & Shadow Effects */
+        .kakao-card {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 20px 40px rgba(60, 30, 30, 0.08), 0 4px 12px rgba(60, 30, 30, 0.05);
+            border: 3px solid #3C1E1E;
+        }
+        .btn-kakao {
+            background-color: #FEE500;
+            color: #3C1E1E;
+            border: 2.5px solid #3C1E1E;
+            box-shadow: 0 4px 0 #3C1E1E;
+            transition: all 0.15s ease;
+        }
+        .btn-kakao:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #3C1E1E;
+            background-color: #ffea2e;
+        }
+        .btn-kakao:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #3C1E1E;
+        }
+        .btn-option {
+            border: 2.5px solid #E5E7EB;
+            transition: all 0.2s ease;
+        }
+        .btn-option:hover {
+            border-color: #3C1E1E;
+            background-color: #FFFBE6;
+            transform: scale(1.02);
+        }
+        .btn-option.selected {
+            border-color: #3C1E1E;
+            background-color: #FEE500;
+        }
+        .btn-option.correct {
+            border-color: #2ECC71 !important;
+            background-color: #E8F8F0 !important;
+            color: #218838 !important;
+        }
+        .btn-option.wrong {
+            border-color: #E74C3C !important;
+            background-color: #FADBD8 !important;
+            color: #C0392B !important;
+        }
+        /* Character Bounce Animation */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+        }
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between text-gray-800 antialiased p-3 sm:p-6">
+
+    <!-- Header Area -->
+    <header class="max-w-3xl mx-auto w-full flex items-center justify-between mb-4 bg-white/80 backdrop-blur rounded-2xl p-3 px-5 border-2 border-kakao-brown shadow-sm">
+        <div class="flex items-center gap-3">
+            <!-- Ryan Icon SVG -->
+            <div class="w-10 h-10 rounded-full bg-[#E59B24] border-2 border-kakao-brown flex items-center justify-center relative overflow-hidden flex-shrink-0">
+                <svg viewBox="0 0 100 100" class="w-8 h-8">
+                    <!-- Ears -->
+                    <circle cx="20" cy="25" r="14" fill="#E59B24" stroke="#3C1E1E" stroke-width="6"/>
+                    <circle cx="80" cy="25" r="14" fill="#E59B24" stroke="#3C1E1E" stroke-width="6"/>
+                    <!-- Face -->
+                    <circle cx="50" cy="55" r="40" fill="#E59B24"/>
+                    <!-- Eyebrows -->
+                    <path d="M 22 42 L 40 42" stroke="#3C1E1E" stroke-width="6" stroke-linecap="round"/>
+                    <path d="M 60 42 L 78 42" stroke="#3C1E1E" stroke-width="6" stroke-linecap="round"/>
+                    <!-- Eyes -->
+                    <circle cx="32" cy="52" r="4" fill="#3C1E1E"/>
+                    <circle cx="68" cy="52" r="4" fill="#3C1E1E"/>
+                    <!-- Nose/Snout -->
+                    <ellipse cx="50" cy="62" rx="10" ry="8" fill="#FFFFFF"/>
+                    <ellipse cx="50" cy="58" rx="4" ry="3" fill="#3C1E1E"/>
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-jua text-xl sm:text-2xl text-kakao-brown leading-tight">분수의 곱셈 마스터</h1>
+                <p class="text-xs font-semibold text-gray-500">초등학교 5학년 수학 복습</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span id="level-badge" class="hidden bg-kakao-yellow text-kakao-brown font-jua text-sm px-3 py-1 rounded-full border-2 border-kakao-brown">
+                1단계
+            </span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-3xl mx-auto w-full flex-grow flex flex-col justify-center my-auto">
+        
+        <!-- START SCREEN -->
+        <section id="start-screen" class="kakao-card rounded-3xl p-6 sm:p-10 text-center relative overflow-hidden">
+            <!-- Decorative Friends Banner -->
+            <div class="flex justify-center items-end gap-3 mb-6 animate-float">
+                <!-- Apeach SVG -->
+                <div class="w-14 h-14 rounded-full bg-[#FFB3C1] border-2 border-kakao-brown flex items-center justify-center">
+                    <svg viewBox="0 0 100 100" class="w-12 h-12">
+                        <path d="M 50 15 C 20 15 10 40 10 60 C 10 80 30 90 50 90 C 70 90 90 80 90 60 C 90 40 80 15 50 15 Z" fill="#FFC0CB"/>
+                        <circle cx="35" cy="55" r="4.5" fill="#3C1E1E"/>
+                        <circle cx="65" cy="55" r="4.5" fill="#3C1E1E"/>
+                        <ellipse cx="25" cy="62" rx="6" ry="4" fill="#FF69B4" opacity="0.6"/>
+                        <ellipse cx="75" cy="62" rx="6" ry="4" fill="#FF69B4" opacity="0.6"/>
+                        <path d="M 44 65 Q 50 72 56 65" stroke="#3C1E1E" stroke-width="4" fill="none" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <!-- Ryan Main SVG -->
+                <div class="w-20 h-20 rounded-full bg-[#E59B24] border-3 border-kakao-brown flex items-center justify-center shadow-md">
+                    <svg viewBox="0 0 100 100" class="w-16 h-16">
+                        <circle cx="20" cy="22" r="14" fill="#E59B24" stroke="#3C1E1E" stroke-width="6"/>
+                        <circle cx="80" cy="22" r="14" fill="#E59B24" stroke="#3C1E1E" stroke-width="6"/>
+                        <circle cx="50" cy="52" r="42" fill="#E59B24"/>
+                        <path d="M 22 38 L 40 38" stroke="#3C1E1E" stroke-width="6" stroke-linecap="round"/>
+                        <path d="M 60 38 L 78 38" stroke="#3C1E1E" stroke-width="6" stroke-linecap="round"/>
+                        <circle cx="32" cy="50" r="4.5" fill="#3C1E1E"/>
+                        <circle cx="68" cy="50" r="4.5" fill="#3C1E1E"/>
+                        <ellipse cx="50" cy="62" rx="11" ry="8" fill="#FFFFFF"/>
+                        <ellipse cx="50" cy="57" rx="4" ry="3" fill="#3C1E1E"/>
+                    </svg>
+                </div>
+                <!-- Muzi SVG -->
+                <div class="w-14 h-14 rounded-full bg-[#FFE800] border-2 border-kakao-brown flex items-center justify-center">
+                    <svg viewBox="0 0 100 100" class="w-12 h-12">
+                        <ellipse cx="50" cy="55" rx="38" ry="35" fill="#FEE500"/>
+                        <path d="M 35 20 Q 30 5 20 10 Q 15 35 30 40 Z" fill="#FFFFFF" stroke="#3C1E1E" stroke-width="4"/>
+                        <path d="M 65 20 Q 70 5 80 10 Q 85 35 70 40 Z" fill="#FFFFFF" stroke="#3C1E1E" stroke-width="4"/>
+                        <circle cx="36" cy="52" r="4" fill="#3C1E1E"/>
+                        <circle cx="64" cy="52" r="4" fill="#3C1E1E"/>
+                        <ellipse cx="50" cy="60" rx="6" ry="4" fill="#FF8A00"/>
+                    </svg>
+                </div>
+            </div>
+
+            <h2 class="font-jua text-2xl sm:text-4xl text-kakao-brown mb-2">
+                카카오 프렌즈와 함께하는 <br><span class="text-kakao-orange">분수의 곱셈</span> 복습하기!
+            </h2>
+            <p class="text-sm sm:text-base text-gray-600 mb-8 font-medium">
+                초등학교 5학년 과정의 분수 곱셈을 재미있게 해결해봐요.<br>
+                모든 문제는 약분까지 깔끔하게 완료해야 정답이에요!
+            </p>
+
+            <!-- Mode/Level Selection -->
+            <div class="mb-8">
+                <label class="block font-jua text-lg text-kakao-brown mb-3">연습할 학습 단계를 선택하세요:</label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-xl mx-auto text-left">
+                    <button onclick="selectLevel(1)" id="lvl-btn-1" class="lvl-select-btn p-3.5 rounded-2xl border-2 border-kakao-brown font-jua text-sm sm:text-base flex items-center justify-between bg-kakao-yellow shadow-sm hover:bg-yellow-300 break-keep">
+                        <span class="truncate">1단계: (진분수) × (자연수)</span>
+                        <span class="text-xs bg-white px-2 py-0.5 rounded-full border border-kakao-brown shrink-0 ml-2">기본</span>
+                    </button>
+                    <button onclick="selectLevel(2)" id="lvl-btn-2" class="lvl-select-btn p-3.5 rounded-2xl border-2 border-gray-300 font-jua text-sm sm:text-base flex items-center justify-between bg-white hover:bg-gray-50 break-keep">
+                        <span class="truncate">2단계: (자연수) × (진분수)</span>
+                        <span class="text-xs bg-gray-100 px-2 py-0.5 rounded-full border border-gray-400 shrink-0 ml-2">응용</span>
+                    </button>
+                    <button onclick="selectLevel(3)" id="lvl-btn-3" class="lvl-select-btn p-3.5 rounded-2xl border-2 border-gray-300 font-jua text-sm sm:text-base flex items-center justify-between bg-white hover:bg-gray-50 break-keep">
+                        <span class="truncate">3단계: (진분수) × (진분수)</span>
+                        <span class="text-xs bg-gray-100 px-2 py-0.5 rounded-full border border-gray-400 shrink-0 ml-2">핵심</span>
+                    </button>
+                    <button onclick="selectLevel(4)" id="lvl-btn-4" class="lvl-select-btn p-3.5 rounded-2xl border-2 border-gray-300 font-jua text-sm sm:text-base flex items-center justify-between bg-white hover:bg-gray-50 break-keep">
+                        <span class="truncate">4단계: (대분수)의 곱셈</span>
+                        <span class="text-xs bg-gray-100 px-2 py-0.5 rounded-full border border-gray-400 shrink-0 ml-2">심화</span>
+                    </button>
+                    <button onclick="selectLevel(0)" id="lvl-btn-0" class="lvl-select-btn sm:col-span-2 p-3.5 rounded-2xl border-2 border-gray-300 font-jua text-sm sm:text-base flex items-center justify-center gap-2 bg-white hover:bg-gray-50 break-keep">
+                        <span>🎲 종합 랜덤 10 문제 도전!</span>
+                    </button>
+                </div>
+            </div>
+
+            <button onclick="startQuiz()" class="btn-kakao font-jua text-xl px-10 py-4 rounded-2xl w-full sm:w-auto">
+                🚀 도전 시작하기!
+            </button>
+        </section>
+
+        <!-- QUIZ SCREEN -->
+        <section id="quiz-screen" class="hidden space-y-4">
+            <!-- Progress Bar & Score Tracker -->
+            <div class="bg-white/90 border-2 border-kakao-brown rounded-2xl p-4 flex items-center justify-between gap-4 shadow-sm">
+                <div class="flex-grow">
+                    <div class="flex justify-between items-center mb-1 font-jua text-sm text-kakao-brown">
+                        <span>문제 진행 <span id="current-q-num" class="text-kakao-orange text-base">1</span> / <span id="total-q-num">10</span></span>
+                        <span id="score-live-tracker" class="text-kakao-blue">현재 점수: 0점</span>
+                    </div>
+                    <div class="w-full bg-gray-200 h-3 rounded-full overflow-hidden border border-kakao-brown">
+                        <div id="progress-bar" class="bg-kakao-yellow h-full transition-all duration-300" style="width: 10%;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quiz Main Box -->
+            <div class="kakao-card rounded-3xl p-5 sm:p-8 relative">
+                <!-- Character Comment Box -->
+                <div class="flex items-center gap-3 bg-kakao-bg p-3.5 sm:p-4 rounded-2xl border-2 border-kakao-brown mb-6 break-keep">
+                    <div id="quiz-char-avatar" class="w-12 h-12 rounded-full bg-kakao-yellow border-2 border-kakao-brown flex-shrink-0 flex items-center justify-center">
+                        <!-- Dynamic SVG inserted here -->
+                    </div>
+                    <div class="flex-grow min-w-0">
+                        <p id="quiz-char-name" class="font-jua text-sm text-kakao-orange">라이언의 응원</p>
+                        <p id="quiz-char-speech" class="text-xs sm:text-sm font-semibold text-kakao-brown leading-snug break-keep">차근차근 문제를 읽고 약분까지 확실하게 해봐!</p>
+                    </div>
+                </div>
+
+                <!-- Mathematical Problem Display Area -->
+                <div class="text-center py-6 px-4 bg-white rounded-2xl border-2 border-dashed border-gray-300 mb-6 min-h-[140px] flex items-center justify-center">
+                    <div id="math-problem-container" class="font-jua text-2xl sm:text-4xl text-kakao-brown flex items-center justify-center gap-3 sm:gap-4 flex-nowrap overflow-x-auto py-2">
+                        <!-- Dynamic Problem HTML Rendered Here -->
+                    </div>
+                </div>
+
+                <!-- Answer Options Grid (4 Multiple Choice) -->
+                <div id="options-container" class="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
+                    <!-- Option Buttons Rendered Dynamically -->
+                </div>
+
+                <!-- Action Footer & Explanation Bar -->
+                <div id="feedback-area" class="hidden p-4 rounded-2xl border-2 mb-4 text-center font-jua text-base sm:text-lg break-keep">
+                    <!-- Dynamic Feedback Message -->
+                </div>
+
+                <div class="flex justify-between items-center gap-3">
+                    <button onclick="toggleHint()" id="hint-btn" class="px-4 py-2.5 rounded-xl border-2 border-gray-400 bg-gray-100 font-jua text-sm text-gray-700 hover:bg-gray-200 shrink-0">
+                        💡 힌트 보기
+                    </button>
+                    <button onclick="nextQuestion()" id="next-btn" class="btn-kakao font-jua text-lg px-8 py-3 rounded-xl hidden ml-auto">
+                        다음 문제 ➔
+                    </button>
+                </div>
+
+                <!-- Hint Content Drawer -->
+                <div id="hint-box" class="hidden mt-4 p-4 bg-amber-50 rounded-2xl border-2 border-amber-300 text-sm text-amber-900 font-medium break-keep leading-relaxed">
+                    <p id="hint-text">💡 힌트 내용이 여기에 표시됩니다.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- RESULT SCREEN -->
+        <section id="result-screen" class="hidden space-y-6">
+            <div class="kakao-card rounded-3xl p-6 sm:p-10 text-center relative overflow-hidden">
+                <!-- Result Character Badge -->
+                <div id="result-badge-container" class="w-24 h-24 mx-auto mb-4 rounded-full bg-kakao-yellow border-3 border-kakao-brown flex items-center justify-center shadow-lg animate-float">
+                    <!-- Dynamic SVG based on score -->
+                </div>
+
+                <h2 id="result-title" class="font-jua text-2xl sm:text-4xl text-kakao-brown mb-1 break-keep">
+                    대단해요! 분수 마스터!
+                </h2>
+                <p id="result-subtitle" class="text-gray-600 font-medium text-sm sm:text-base mb-6 break-keep">카카오 프렌즈 친구들이 당신을 자랑스러워해요!</p>
+
+                <!-- Score Board Card -->
+                <div class="bg-kakao-bg border-2 border-kakao-brown rounded-2xl p-6 max-w-md mx-auto mb-8 shadow-inner">
+                    <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">최종 점수</div>
+                    <div class="font-jua text-5xl sm:text-6xl text-kakao-orange mb-3">
+                        <span id="final-score">100</span><span class="text-2xl sm:text-3xl text-kakao-brown">점</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-sm font-jua border-t-2 border-kakao-brown/20 pt-3">
+                        <div class="text-left text-gray-600">맞힌 문제 수: <span id="correct-count" class="text-kakao-blue text-base">10</span>개</div>
+                        <div class="text-right text-gray-600">소요 시간: <span id="time-taken" class="text-kakao-brown text-base">00:45</span></div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex flex-col sm:flex-row justify-center gap-3 max-w-md mx-auto">
+                    <button onclick="restartCurrentLevel()" class="btn-kakao font-jua text-lg px-6 py-3.5 rounded-2xl flex-1 whitespace-nowrap">
+                        🔄 다시 풀어보기
+                    </button>
+                    <button onclick="goToStart()" class="bg-white text-kakao-brown border-2 border-kakao-brown font-jua text-lg px-6 py-3.5 rounded-2xl flex-1 hover:bg-gray-100 shadow-sm whitespace-nowrap">
+                        🏠 단계 선택으로
+                    </button>
+                </div>
+            </div>
+
+            <!-- Detailed Answer Review Box -->
+            <div class="bg-white border-2 border-kakao-brown rounded-3xl p-6 shadow-sm">
+                <h3 class="font-jua text-xl text-kakao-brown mb-4 flex items-center gap-2 break-keep">
+                    <span>📝</span> 오답 노트 및 상세 풀이 복습
+                </h3>
+                <div id="review-list" class="space-y-4 max-h-[400px] overflow-y-auto pr-2">
+                    <!-- Review items dynamically generated -->
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="max-w-3xl mx-auto w-full text-center py-4 text-xs font-semibold text-gray-500 break-keep">
+        카카오프렌즈 캐릭터 팬아트 테마 수학 학습 웹앱 • 초등 5학년 2학기 분수의 곱셈
+    </footer>
+
+    <!-- JavaScript Logic Engine -->
+    <script>
+        // Web Audio Synthesizer for Fun Sound Effects (No external audio file needed!)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+                osc.frequency.setValueAtTime(196, audioCtx.currentTime + 0.15); // G3
+                gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            }
+        }
+
+        // Kakao Character Vector Icons Map
+        const CHARACTERS = {
+            ryan: {
+                name: "라이언",
+                speech: ["차근차근 분모와 분자를 계산해봐!", "기약분수로 만드는 걸 잊지 마!", "역시 넌 최고야! 아주 잘하고 있어!"],
+                svg: `<svg viewBox="0 0 100 100" class="w-9 h-9"><circle cx="20" cy="22" r="14" fill="#E59B24" stroke="#3C1E1E" stroke-width="6"/><circle cx="80" cy="22" r="14" fill="#E59B24" stroke="#3C1E1E" stroke-width="6"/><circle cx="50" cy="52" r="42" fill="#E59B24"/><path d="M 22 38 L 40 38" stroke="#3C1E1E" stroke-width="6" stroke-linecap="round"/><path d="M 60 38 L 78 38" stroke="#3C1E1E" stroke-width="6" stroke-linecap="round"/><circle cx="32" cy="50" r="4.5" fill="#3C1E1E"/><circle cx="68" cy="50" r="4.5" fill="#3C1E1E"/><ellipse cx="50" cy="62" rx="11" ry="8" fill="#FFFFFF"/><ellipse cx="50" cy="57" rx="4" ry="3" fill="#3C1E1E"/></svg>`
+            },
+            apeach: {
+                name: "어피치",
+                speech: ["달콤하게 문제를 풀어볼까?", "대분수는 먼저 가분수로 고치는 거 알지?", "우와! 완벽한 계산이야!"],
+                svg: `<svg viewBox="0 0 100 100" class="w-9 h-9"><path d="M 50 15 C 20 15 10 40 10 60 C 10 80 30 90 50 90 C 70 90 90 80 90 60 C 90 40 80 15 50 15 Z" fill="#FFC0CB"/><circle cx="35" cy="55" r="4.5" fill="#3C1E1E"/><circle cx="65" cy="55" r="4.5" fill="#3C1E1E"/><ellipse cx="25" cy="62" rx="6" ry="4" fill="#FF69B4" opacity="0.6"/><ellipse cx="75" cy="62" rx="6" ry="4" fill="#FF69B4" opacity="0.6"/><path d="M 44 65 Q 50 72 56 65" stroke="#3C1E1E" stroke-width="4" fill="none" stroke-linecap="round"/></svg>`
+            },
+            muzi: {
+                name: "무지",
+                speech: ["신나게 곱셈 속으로 출발~!", "곱하기 전에 미리 약분하면 계산이 정말 쉬워져!", "대단해! 수학 영재인데?"],
+                svg: `<svg viewBox="0 0 100 100" class="w-9 h-9"><ellipse cx="50" cy="55" rx="38" ry="35" fill="#FEE500"/><path d="M 35 20 Q 30 5 20 10 Q 15 35 30 40 Z" fill="#FFFFFF" stroke="#3C1E1E" stroke-width="4"/><path d="M 65 20 Q 70 5 80 10 Q 85 35 70 40 Z" fill="#FFFFFF" stroke="#3C1E1E" stroke-width="4"/><circle cx="36" cy="52" r="4" fill="#3C1E1E"/><circle cx="64" cy="52" r="4" fill="#3C1E1E"/><ellipse cx="50" cy="60" rx="6" ry="4" fill="#FF8A00"/></svg>`
+            },
+            tube: {
+                name: "튜브",
+                speech: ["실수해도 괜찮아! 천천히 해봐!", "자연수는 분모가 1인 분수로 생각하면 편해!", "우와 오리발 내밀 만큼 완벽해!"],
+                svg: `<svg viewBox="0 0 100 100" class="w-9 h-9"><ellipse cx="50" cy="50" rx="40" ry="36" fill="#FFFFFF" stroke="#3C1E1E" stroke-width="4"/><circle cx="35" cy="45" r="4" fill="#3C1E1E"/><circle cx="65" cy="45" r="4" fill="#3C1E1E"/><ellipse cx="50" cy="62" rx="16" ry="10" fill="#FF8A00" stroke="#3C1E1E" stroke-width="3"/></svg>`
+            }
+        };
+
+        // App Game State Variables
+        let currentLevel = 1; // 1, 2, 3, 4, 0 (Random)
+        let questions = [];
+        let currentQIndex = 0;
+        let score = 0;
+        let userAnswers = [];
+        let startTime = null;
+        let timerInterval = null;
+
+        // Helper: Greatest Common Divisor
+        function gcd(a, b) {
+            a = Math.abs(a);
+            b = Math.abs(b);
+            while (b) {
+                let t = b;
+                b = a % b;
+                a = t;
+            }
+            return a;
+        }
+
+        // Fraction Helper Structure
+        class Fraction {
+            constructor(num, den, whole = 0) {
+                if (whole !== 0) {
+                    num = whole * den + num;
+                }
+                const g = gcd(num, den);
+                this.num = num / g;
+                this.den = den / g;
+            }
+
+            // Convert to display object (Mixed fraction if num >= den)
+            toDisplay() {
+                if (this.num === 0) return { whole: 0, num: 0, den: 1, text: "0" };
+                if (this.den === 1) return { whole: this.num, num: 0, den: 1, text: `${this.num}` };
+                
+                if (this.num > this.den) {
+                    const w = Math.floor(this.num / this.den);
+                    const n = this.num % this.den;
+                    return { whole: w, num: n, den: this.den, text: `${w}와 ${n}/${this.den}` };
+                }
+                return { whole: 0, num: this.num, den: this.den, text: `${this.num}/${this.den}` };
+            }
+
+            // HTML representation
+            toHTML() {
+                const d = this.toDisplay();
+                if (d.num === 0) {
+                    return `<span>${d.whole}</span>`;
+                }
+                if (d.whole > 0) {
+                    return `
+                        <div class="mixed-fraction">
+                            <span class="text-3xl font-bold">${d.whole}</span>
+                            <div class="fraction">
+                                <span class="numerator">${d.num}</span>
+                                <span class="denominator">${d.den}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+                return `
+                    <div class="fraction">
+                        <span class="numerator">${d.num}</span>
+                        <span class="denominator">${d.den}</span>
+                    </div>
+                `;
+            }
+
+            equals(other) {
+                return this.num === other.num && this.den === other.den;
+            }
+        }
+
+        // Random Integer Generator [min, max]
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function generateQuestions(level, count = 10) {
+            const list = [];
+            
+            for (let i = 0; i < count; i++) {
+                let targetLvl = level === 0 ? randInt(1, 4) : level;
+                let qData = createSingleQuestion(targetLvl);
+                list.push(qData);
+            }
+            return list;
+        }
+
+        function createSingleQuestion(lvl) {
+            let f1, f2, answer, rawSolutionText, hintText;
+            let displayHTML1, displayHTML2;
+
+            if (lvl === 1) {
+                // (Proper Fraction) x (Natural Number)
+                const den1 = randInt(3, 9);
+                const num1 = randInt(1, den1 - 1);
+                const nat2 = randInt(2, 8);
+
+                f1 = new Fraction(num1, den1);
+                // Multiplication: (num1 / den1) * nat2
+                const ansNum = num1 * nat2;
+                const ansDen = den1;
+                answer = new Fraction(ansNum, ansDen);
+
+                displayHTML1 = f1.toHTML();
+                displayHTML2 = `<span class="text-3xl sm:text-4xl font-bold">${nat2}</span>`;
+
+                rawSolutionText = `<b>${num1}/${den1} × ${nat2}</b> = <b>(${num1} × ${nat2}) / ${den1}</b> = <b>${ansNum}/${ansDen}</b><br>약분하여 나타내면 <b>${answer.toDisplay().text}</b> 이 됩니다.`;
+                hintText = `분자의 곱: ${num1} × ${nat2} = ${ansNum}을 먼저 계산한 뒤, 분모 ${den1}과 약분해 보세요!`;
+
+            } else if (lvl === 2) {
+                // (Natural Number) x (Proper Fraction)
+                const nat1 = randInt(2, 8);
+                const den2 = randInt(3, 9);
+                const num2 = randInt(1, den2 - 1);
+
+                f2 = new Fraction(num2, den2);
+                const ansNum = nat1 * num2;
+                const ansDen = den2;
+                answer = new Fraction(ansNum, ansDen);
+
+                displayHTML1 = `<span class="text-3xl sm:text-4xl font-bold">${nat1}</span>`;
+                displayHTML2 = f2.toHTML();
+
+                rawSolutionText = `<b>${nat1} × ${num2}/${den2}</b> = <b>(${nat1} × ${num2}) / ${den2}</b> = <b>${ansNum}/${ansDen}</b><br>약분하여 나타내면 <b>${answer.toDisplay().text}</b> 이 됩니다.`;
+                hintText = `자연수 ${nat1}과 분자 ${num2}를 곱한 값을 분자에 두고 약분해 보세요.`;
+
+            } else if (lvl === 3) {
+                // (Proper Fraction) x (Proper Fraction)
+                const den1 = randInt(2, 8);
+                const num1 = randInt(1, den1 - 1);
+                const den2 = randInt(2, 8);
+                const num2 = randInt(1, den2 - 1);
+
+                f1 = new Fraction(num1, den1);
+                f2 = new Fraction(num2, den2);
+
+                const ansNum = num1 * num2;
+                const ansDen = den1 * den2;
+                answer = new Fraction(ansNum, ansDen);
+
+                displayHTML1 = f1.toHTML();
+                displayHTML2 = f2.toHTML();
+
+                rawSolutionText = `<b>${num1}/${den1} × ${num2}/${den2}</b> = <b>(${num1} × ${num2}) / (${den1} × ${den2})</b> = <b>${ansNum}/${ansDen}</b><br>약분하면 <b>${answer.toDisplay().text}</b> 이 됩니다.`;
+                hintText = `분자는 분자끼리(${num1}×${num2}), 분모는 분모끼리(${den1}×${den2}) 곱한 후 약분하세요!`;
+
+            } else {
+                // (Mixed Fraction) x (Mixed/Proper Fraction)
+                const w1 = randInt(1, 3);
+                const den1 = randInt(2, 5);
+                const num1 = randInt(1, den1 - 1);
+
+                const w2 = randInt(1, 2);
+                const den2 = randInt(2, 5);
+                const num2 = randInt(1, den2 - 1);
+
+                f1 = new Fraction(num1, den1, w1);
+                f2 = new Fraction(num2, den2, w2);
+
+                const improperNum1 = w1 * den1 + num1;
+                const improperNum2 = w2 * den2 + num2;
+
+                const ansNum = improperNum1 * improperNum2;
+                const ansDen = den1 * den2;
+                answer = new Fraction(ansNum, ansDen);
+
+                displayHTML1 = f1.toHTML();
+                displayHTML2 = f2.toHTML();
+
+                rawSolutionText = `대분수를 가분수로 변환: <b>${w1}와 ${num1}/${den1} = ${improperNum1}/${den1}</b>, <b>${w2}와 ${num2}/${den2} = ${improperNum2}/${den2}</b><br>곱셈: <b>${improperNum1}/${den1} × ${improperNum2}/${den2} = ${ansNum}/${ansDen}</b><br>대분수로 나타내면 <b>${answer.toDisplay().text}</b> 입니다.`;
+                hintText = `먼저 대분수를 가분수로 바꾸어 준 뒤 (분자끼리, 분모끼리) 곱해보세요!`;
+            }
+
+            // Generate 4 Option Choices (1 Correct + 3 Wrong Distractors)
+            const options = generateDistractors(answer);
+
+            return {
+                level: lvl,
+                html1: displayHTML1,
+                html2: displayHTML2,
+                answer: answer,
+                options: options,
+                solution: rawSolutionText,
+                hint: hintText
+            };
+        }
+
+        function generateDistractors(correctAnswer) {
+            const list = [correctAnswer];
+
+            // Distractor strategy 1: Forget to simplify (if possible) or modify numerator
+            let d1 = new Fraction(correctAnswer.num + randInt(1, 3), correctAnswer.den);
+            if (!containsFraction(list, d1)) list.push(d1);
+
+            // Distractor strategy 2: Invert or shift denominator
+            let d2 = new Fraction(correctAnswer.num, Math.max(1, correctAnswer.den + (Math.random() < 0.5 ? 1 : -1)));
+            if (!containsFraction(list, d2)) list.push(d2);
+
+            // Distractor strategy 3: Off by whole number or simple calculation error
+            let d3 = new Fraction(Math.max(1, correctAnswer.num - randInt(1, 2)), correctAnswer.den);
+            if (!containsFraction(list, d3)) list.push(d3);
+
+            // Fill up to 4 options if duplicates occurred
+            let safety = 0;
+            while (list.length < 4 && safety < 30) {
+                safety++;
+                let dummy = new Fraction(randInt(1, 25), randInt(2, 12));
+                if (!containsFraction(list, dummy)) {
+                    list.push(dummy);
+                }
+            }
+
+            // Shuffle choices
+            return list.sort(() => Math.random() - 0.5);
+        }
+
+        function containsFraction(arr, frac) {
+            return arr.some(f => f.equals(frac));
+        }
+
+        function selectLevel(lvl) {
+            currentLevel = lvl;
+            document.querySelectorAll('.lvl-select-btn').forEach(btn => {
+                btn.classList.remove('bg-kakao-yellow', 'border-kakao-brown');
+                btn.classList.add('bg-white', 'border-gray-300');
+            });
+
+            const activeBtn = document.getElementById(`lvl-btn-${lvl}`);
+            if (activeBtn) {
+                activeBtn.classList.remove('bg-white', 'border-gray-300');
+                activeBtn.classList.add('bg-kakao-yellow', 'border-kakao-brown');
+            }
+        }
+
+        function startQuiz() {
+            questions = generateQuestions(currentLevel, 10);
+            currentQIndex = 0;
+            score = 0;
+            userAnswers = [];
+            startTime = new Date();
+
+            // Update Header Badge
+            const badge = document.getElementById('level-badge');
+            badge.classList.remove('hidden');
+            const lvlNames = { 1: '1단계', 2: '2단계', 3: '3단계', 4: '4단계', 0: '종합' };
+            badge.innerText = lvlNames[currentLevel];
+
+            // Switch screens
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('quiz-screen').classList.remove('hidden');
+
+            renderCurrentQuestion();
+        }
+
+        function renderCurrentQuestion() {
+            const q = questions[currentQIndex];
+
+            // Progress Update
+            document.getElementById('current-q-num').innerText = currentQIndex + 1;
+            document.getElementById('total-q-num').innerText = questions.length;
+            document.getElementById('score-live-tracker').innerText = `현재 점수: ${score}점`;
+            document.getElementById('progress-bar').style.width = `${((currentQIndex + 1) / questions.length) * 100}%`;
+
+            // Random Character cheerleader
+            const keys = Object.keys(CHARACTERS);
+            const charKey = keys[currentQIndex % keys.length];
+            const character = CHARACTERS[charKey];
+            
+            document.getElementById('quiz-char-avatar').innerHTML = character.svg;
+            document.getElementById('quiz-char-name').innerText = `${character.name}의 한마디`;
+            document.getElementById('quiz-char-speech').innerText = character.speech[randInt(0, character.speech.length - 1)];
+
+            // Render Math Expression
+            const mathBox = document.getElementById('math-problem-container');
+            mathBox.innerHTML = `
+                ${q.html1}
+                <span class="text-kakao-orange font-black px-2">×</span>
+                ${q.html2}
+                <span class="text-kakao-brown font-black px-2">=</span>
+                <span class="text-3xl font-bold text-kakao-blue">?</span>
+            `;
+
+            // Render 4 Answer Options
+            const optBox = document.getElementById('options-container');
+            optBox.innerHTML = '';
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option bg-white rounded-2xl p-4 flex items-center justify-center font-jua text-2xl text-kakao-brown min-h-[72px] shadow-sm';
+                btn.onclick = () => checkAnswer(opt, btn);
+                btn.innerHTML = opt.toHTML();
+                optBox.appendChild(btn);
+            });
+
+            // Reset Feedback & Controls
+            document.getElementById('feedback-area').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('hint-btn').classList.remove('hidden');
+            document.getElementById('hint-box').classList.add('hidden');
+            document.getElementById('hint-text').innerHTML = q.hint;
+        }
+
+        function checkAnswer(selectedOption, clickedBtn) {
+            const q = questions[currentQIndex];
+            const isCorrect = selectedOption.equals(q.answer);
+
+            // Record User Answer
+            userAnswers.push({
+                question: q,
+                userOption: selectedOption,
+                isCorrect: isCorrect
+            });
+
+            // Disable all option buttons
+            const allBtns = document.querySelectorAll('.btn-option');
+            allBtns.forEach(b => b.disabled = true);
+
+            const feedback = document.getElementById('feedback-area');
+            feedback.classList.remove('hidden', 'bg-green-100', 'border-green-400', 'text-green-800', 'bg-red-100', 'border-red-400', 'text-red-800');
+
+            if (isCorrect) {
+                score += 10;
+                playSound('correct');
+                clickedBtn.classList.add('correct');
+                feedback.classList.add('bg-green-100', 'border-green-400', 'text-green-800');
+                feedback.innerHTML = `🎉 <b>정답입니다!</b> 참 잘했어요!`;
+                
+                // Character Cheering Speech
+                document.getElementById('quiz-char-speech').innerText = "와우! 완벽해요! 정답을 맞혔어요! 👏";
+            } else {
+                playSound('wrong');
+                clickedBtn.classList.add('wrong');
+                
+                // Highlight the correct option
+                allBtns.forEach((b, idx) => {
+                    if (q.options[idx].equals(q.answer)) {
+                        b.classList.add('correct');
+                    }
+                });
+
+                feedback.classList.add('bg-red-100', 'border-red-400', 'text-red-800');
+                feedback.innerHTML = `아쉽네요! 정답은 <b>${q.answer.toDisplay().text}</b> 입니다.`;
+                document.getElementById('quiz-char-speech').innerText = "괜찮아요! 다음 문제에서 다시 실력을 발휘해봐요! 💪";
+            }
+
+            document.getElementById('score-live-tracker').innerText = `현재 점수: ${score}점`;
+            document.getElementById('next-btn').classList.remove('hidden');
+            document.getElementById('hint-btn').classList.add('hidden');
+            document.getElementById('hint-box').classList.add('hidden');
+        }
+
+        function toggleHint() {
+            const box = document.getElementById('hint-box');
+            box.classList.toggle('hidden');
+        }
+
+        function nextQuestion() {
+            currentQIndex++;
+            if (currentQIndex < questions.length) {
+                renderCurrentQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+
+            const endTime = new Date();
+            const totalSeconds = Math.floor((endTime - startTime) / 1000);
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            const timeStr = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('correct-count').innerText = userAnswers.filter(a => a.isCorrect).length;
+            document.getElementById('time-taken').innerText = timeStr;
+
+            // Result Badge SVG & Title based on score
+            const badgeBox = document.getElementById('result-badge-container');
+            const title = document.getElementById('result-title');
+            const subtitle = document.getElementById('result-subtitle');
+
+            if (score >= 90) {
+                badgeBox.innerHTML = CHARACTERS.ryan.svg;
+                title.innerText = "🏆 분수의 곱셈 완전 마스터!";
+                subtitle.innerText = "라이언이 금메달을 선물했어요! 수학 실력이 최고예요!";
+                triggerConfetti();
+            } else if (score >= 70) {
+                badgeBox.innerHTML = CHARACTERS.apeach.svg;
+                title.innerText = "🎉 훌륭한 수학 탐정!";
+                subtitle.innerText = "어피치도 박수를 치고 있어요! 조금만 더 하면 100점!";
+            } else {
+                badgeBox.innerHTML = CHARACTERS.tube.svg;
+                title.innerText = "👍 차근차근 복습해봐요!";
+                subtitle.innerText = "튜브와 함께 틀린 문제를 다시 확인하고 도전해볼까요?";
+            }
+
+            // Render Detailed Review Notebook
+            renderReviewList();
+        }
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+
+        function renderReviewList() {
+            const listContainer = document.getElementById('review-list');
+            listContainer.innerHTML = '';
+
+            userAnswers.forEach((ans, idx) => {
+                const item = document.createElement('div');
+                item.className = `p-4 rounded-2xl border-2 ${ans.isCorrect ? 'border-green-200 bg-green-50/50' : 'border-red-200 bg-red-50/50'} space-y-2 break-keep`;
+
+                item.innerHTML = `
+                    <div class="flex items-center justify-between font-jua text-base gap-2">
+                        <span class="${ans.isCorrect ? 'text-green-700' : 'text-red-700'} shrink-0">
+                            ${idx + 1}번 문제 ${ans.isCorrect ? '✓ 정답' : '✗ 오답'}
+                        </span>
+                        <span class="text-xs text-gray-500 whitespace-nowrap">내 답: ${ans.userOption.toDisplay().text}</span>
+                    </div>
+                    <div class="flex items-center gap-3 bg-white p-3 rounded-xl border border-gray-200 justify-center overflow-x-auto">
+                        ${ans.question.html1}
+                        <span class="font-bold text-kakao-orange">×</span>
+                        ${ans.question.html2}
+                        <span class="font-bold text-gray-400">=</span>
+                        <span class="font-bold text-kakao-blue">${ans.question.answer.toDisplay().text}</span>
+                    </div>
+                    <div class="text-xs sm:text-sm text-gray-700 bg-white/80 p-3 rounded-xl border border-gray-100 font-sans leading-relaxed break-keep">
+                        <span class="font-bold text-kakao-brown">💡 풀이 과정:</span><br>
+                        ${ans.question.solution}
+                    </div>
+                `;
+                listContainer.appendChild(item);
+            });
+        }
+
+        function restartCurrentLevel() {
+            startQuiz();
+        }
+
+        function goToStart() {
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('start-screen').classList.remove('hidden');
+            document.getElementById('level-badge').classList.add('hidden');
+        }
+
+        // Initialize on Load
+        window.onload = function() {
+            selectLevel(1);
+        };
+    </script>
+</body>
+</html>
